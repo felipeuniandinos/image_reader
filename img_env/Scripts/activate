@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\usuario\Documents\TECH ANT\image_reader\img_env"
+VIRTUAL_ENV="C:\Users\LENOVO\Documents\TRABAJO\image_reader\img_env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

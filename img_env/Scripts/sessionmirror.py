@@ -1,4 +1,4 @@
-#!C:\Users\usuario\Documents\TECH ANT\image_reader\img_env\Scripts\python.exe
+#!C:\Users\LENOVO\Documents\TRABAJO\image_reader\img_env\Scripts\python.exe
 '''
 The MIT License (MIT)
 

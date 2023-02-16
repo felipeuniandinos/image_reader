@@ -1,4 +1,4 @@
-#!"C:\Users\usuario\Documents\TECH ANT\image_reader\img_env\Scripts\python.exe"
+#!C:\Users\LENOVO\Documents\TRABAJO\image_reader\img_env\Scripts\python.exe
 # EASY-INSTALL-ENTRY-SCRIPT: 'future==0.18.3','console_scripts','pasteurize'
 import re
 import sys
