@@ -1,74 +1,31 @@
-import numpy as np
 from PIL import Image
-import cv2
-import pytesseract
-
-def Img2Str(ruta_input,name,folder_img):
-    #se debe instalar tesseract-ocr-w64-setup-5.3.0.20221222, es un instalador
-    #ubicado en este folder. luego se podrá ejecutar la siguiente linea de codigo.
-    pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
-    # Cargar imagen
-    img = cv2.imread(ruta_input+'\\'+folder_img+'\\'+name)
-
-    # Aplicar OCR
-    texto = pytesseract.image_to_string(img)
-
-    # Imprimir resultado
-    return(texto)
-
-def ImgCut(ruta_input,name,folder_img,etiqueta,x_etiqueta_ini,x_etiqueta_fin,y_etiqueta_ini,y_etiqueta_fin):
-    img = cv2.imread(ruta_input+'\\'+folder_img+'\\'+name)
-    crop_img = img[x_etiqueta_ini:x_etiqueta_fin,y_etiqueta_ini:y_etiqueta_fin]
-    cv2.imwrite(ruta_input+'\\'+folder_img+'\\'+etiqueta+name, crop_img)
-    return(etiqueta+name)
-
-def ImgCutFirm(im,cc_str,ruta_output,folder_out1,ruta_input,name,folder_img,etiqueta,x_etiqueta_ini,x_etiqueta_fin,y_etiqueta_ini,y_etiqueta_fin):
-    img = cv2.imread(ruta_input+'\\'+folder_img+'\\'+name)
-    crop_img = img[x_etiqueta_ini:x_etiqueta_fin,y_etiqueta_ini:y_etiqueta_fin]
-    cv2.imwrite(ruta_output+'\\'+folder_out1+'\\'+im[:-5]+'_'+cc_str+'.png', crop_img)
-    img = Image.open(ruta_output+'\\'+folder_out1+'\\'+im[:-5]+'_'+cc_str+'.png')
-    return(im[:-5]+'_'+cc_str+'.png')
-
-def PrePross(ruta_input,name,folder_img):
-    # Cargar la imagen y convertirla a escala de grises
-    img = Image.open(ruta_input+'\\'+folder_img+'\\'+name)
-    gray = img.convert('L')
-
-    # Aplicar un umbral a la imagen
-    threshold = 127
-    binary = gray.point(lambda p: p > threshold and 255)
-    binary = np.array(binary)
-
-    # Encontrar los contornos de la imagen binaria
-    contours = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[0]
-
-    # Encontrar el contorno con el área máxima
-    max_area = 0
-    max_contour = None
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        if area > max_area:
-            max_area = area
-            max_contour = contour
-
-    second_max_area = 0
-    second_max_contour = None
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        if area > second_max_area and area < max_area:
-            second_max_area = area
-            second_max_contour = contour
-
-    # Obtener las coordenadas del rectángulo que encierra el contorno más grande
-    x, y, w, h = cv2.boundingRect(second_max_contour)
 
 
-    # Recortar la imagen original con las coordenadas del rectángulo
-    cropped_img = img.crop((x, y, x+w, y+h))
-    # nuevo tamaño a guardar
-    width = 1817
-    height = 2889
-    resized_img = cropped_img.resize((width, height))
-    # Guardar la nueva imagen
-    resized_img.save(ruta_input+'\\'+folder_img+'\\proc_'+name)
-    return('proc_'+name)
+def doc(ruta,folder,numb,rutadoc,borrar):
+    # abrir la imagen
+    imagen = Image.open(ruta+'//'+folder+'//'+borrar+'//'+numb)
+
+    if rutadoc=='doc_eq':
+        # especificar el área que deseas cortar en  ES IM 004 DOCUMENTO EQUIVALENTE
+        dimQr, dimCc, dimnum, dimDate, dimGrBru, dimLey = ((1321,333,1549,561), (503,652,857,704), (1700,319,2221,409), (1683,499,2223,565), (807,891,1183,959), (827,1225,1189,1295))
+
+        dimensiones = [dimQr, dimCc, dimnum, dimDate, dimGrBru, dimLey]
+        nombres = ['CODIGO_QR', 'Cc', 'Num', 'Date', 'GrBru', 'Ley']
+        for i, dim in enumerate(dimensiones):
+            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
+
+        
+    elif rutadoc=='doc_rut':
+        # especificar el área que deseas cortar en  RUT
+        dimQr, dimCc, dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2 = ((993,457,1248,699), (1363,934,1715,976),(343,794,775,838),(149,1870,327,1926),(705,1872,859,1920),(1397,1880,1553,1928),(1571,1880,1719,1928))
+
+        dimensiones = [dimQr, dimCc,  dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2 ]
+        nombres = ['CODIGO_QR', 'Cc', 'Nit', 'Act_ppa', 'Act_sria', 'Otras_act','Otras_act1']
+        for i, dim in enumerate(dimensiones):
+            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
+
+        # especificar el área que deseas cortar en  RUT"""
+
+
+    
+    
