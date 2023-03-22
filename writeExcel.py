@@ -7,7 +7,7 @@ from openpyxl import load_workbook
 
 def write(ruta, folder, numb, contador):
     pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'    
-        # especificar la ruta de la imagen
+    # especificar la ruta de la imagen
     imagen_path = os.path.join(ruta, folder, numb, contador)
     img = Image.open(imagen_path)
 
