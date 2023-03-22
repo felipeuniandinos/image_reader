@@ -16,10 +16,13 @@ def ordenar_numeros(nombre_archivo): #funcion para obtener imagenes en orden
 # Convierte cada página a una imagen
 def Pdf2Png1(ruta_input, folder_img, archivos_pdf, doc, borrar):
     reader = PdfReader(os.path.join(ruta_input, doc, archivos_pdf))
+    # Inicializar el contador de imágenes en 1
+    image_num = 1
     for page in reader.pages:
         for image in page.images:
             numb = str(image.name[2:])
-            filename = os.path.join(ruta_input, folder_img, borrar, numb)
+            # Utilizar el contador de imágenes para asignar el nombre de archivo
+            filename = os.path.join(ruta_input, folder_img, borrar, f"{image_num}.tiff")
             with open(filename, "wb") as fp:
                 fp.write(image.data)
             # Verificar si la imagen es un archivo JPG y cambiar la extensión a TIFF
@@ -28,4 +31,7 @@ def Pdf2Png1(ruta_input, folder_img, archivos_pdf, doc, borrar):
                 # Verificar si el archivo ya existe antes de intentar renombrar
                 if not os.path.exists(new_filename):
                     os.rename(filename, new_filename)
+            # Incrementar el contador de imágenes
+            image_num += 1
+
                 
