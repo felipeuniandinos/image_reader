@@ -3,6 +3,8 @@ import pytesseract
 import cv2
 import numpy as np
 import os
+import pandas as pd
+
 
 
 #################################################3
@@ -109,6 +111,7 @@ def PrePross(input,pros,borrar):
 
                 
                 print("Reprocesamiento ", borrar,file)
+    
 
     #################################################
 
@@ -119,37 +122,32 @@ def doc(ruta,folder,numb,rutadoc,borrar):
 
     if rutadoc=='doc_eq':
         # especificar el área que deseas cortar en  ES IM 004 DOCUMENTO EQUIVALENTE
-        dimQr, dimCc, dimnum, dimDate, dimGrBru, dimLey = ((1321,333,1549,561), (503,652,857,704), (1700,319,2221,409), (1683,499,2223,565), (807,891,1183,959), (827,1225,1189,1295))
+        dimfull = ((112,100,4200,5000))
 
-        dimensiones = [dimQr, dimCc, dimnum, dimDate, dimGrBru, dimLey]
-        nombres = ['CODIGO_QR', 'Cc', 'Num', 'Date', 'GrBru', 'Ley']
+        dimensiones = [dimfull]
+        nombres = ['full']
         for i, dim in enumerate(dimensiones):
             imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
 
         
     elif rutadoc=='doc_rut':
         # especificar el área que deseas cortar en  RUT
-        dimQr, dimCc, dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2 = ((993,457,1248,699), (1323,934,1687,970),(343,794,775,838),(169,1868,323,1924),(705,1872,859,1920),(1397,1880,1553,1928),(1571,1880,1719,1928))
-        dimensiones = [dimQr, dimCc,  dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2 ]
-        nombres = ['CODIGO_QR', 'Cc', 'Nit', 'Act_ppa', 'Act_sria', 'Otras_act','Otras_act1']
+        dimQr, dimCc, dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2, dimName, LName = ((676,270,895,523), (975,752,1214,789),(214,611,508,654),(33,1671,159,1715),(457,1675,580,1711),(1002,1667,1120,1710),(1133,1667,1245,1928),(815,933,1120,977),(11,933,700,981))
+        dimensiones = [dimQr, dimCc,  dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2,dimName,LName]
+        nombres = ['9. CODIGO_QR', '3. Cc', '4. Nit', '5. Act_ppa', '6. Act_sria', '7. Otras_act','8. Otras_act1','1. Nombre','2. Apellido']
         for i, dim in enumerate(dimensiones):
             imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
 
     elif rutadoc=='doc_ced':
         # especificar el área que deseas cortar en  CEDULA
-        ancho, alto = 5,5
-        dimensiones = (327, 168, 532 + ancho, 198 + alto)
-        dimName,dimLastname, dimCc,  dimFirma, dimFoto, dimHuel, dimDateexp = ((343,794,775+ ancho,838+alto),(212,211,528+ancho,243+alto), (327, 168, 532 + ancho, 198 + alto),(203,432,674+ancho ,472+alto),(745,123,1091+ancho,512+alto),(187,1085,466+ancho,1397+alto),(521,1331,668+ancho,1357+alto))
-        
-
-        dimensiones = [dimName,dimLastname, dimCc,  dimFirma, dimFoto, dimHuel, dimDateexp]
-        nombres = ['Nombre', 'Apellido', 'Cc', 'Firma', 'Foto', 'Huella','Fecha_exp']
+        dimfull = ((112,466,4200,5000))
+        dimensiones = [dimfull]
+        nombres = ['full']
         for i, dim in enumerate(dimensiones):
             imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
-
     elif rutadoc=='doc_alc':
         # especificar el área que deseas cortar en  ALCALDIA
-        dimfull = ((112,466,2569,2401))
+        dimfull = ((112,100,4200,5000))
 
         dimensiones = [dimfull]
         nombres = ['full']
@@ -158,7 +156,7 @@ def doc(ruta,folder,numb,rutadoc,borrar):
 
     elif rutadoc=='doc_carta':
         # especificar el área que deseas cortar en  CARTA REPRESENTANTE LEGAL
-        dimfull = ((112,466,2569,2401))
+        dimfull = ((112,100,4200,5000))
 
         dimensiones = [dimfull]
         nombres = ['full']
@@ -168,16 +166,16 @@ def doc(ruta,folder,numb,rutadoc,borrar):
     elif rutadoc=='doc_decProd':
 
         # especificar el área que deseas cortar en  ES IM 004 DECLARACION DE PRODUCCION
-        dim_nomini, dim_apell_ini, dim_cc_ini, dim_act_ini, dim_cant_ini, dim_uni_ini, dim_mun_ini, dim_dia_ini, dim_firma_ini, dim_huella_ini = ((1467, 184, 1564, 815), (1462, 1110, 1585, 1617), (1469, 1793, 1585, 2076), (1471, 2360, 1548, 2800), (963, 328, 1037, 593), (969, 960, 1038, 1294), (1325, 1993, 1380, 2320), (2160, 95, 205, 2824), (33, 821, 223, 1371), (39, 1369, 249, 1577))
+        dim_nomini, dim_apell_ini, dim_cc_ini, dim_act_ini, dim_cant_ini, dim_uni_ini, dim_mun_ini, dim_dia_ini, dim_firma_ini, dim_huella_ini = ((1467, 184, 1564, 815), (1462, 1110, 1585, 1617), (1469, 1793, 1585, 2076), (1471, 2360, 1548, 2800), (963, 328, 1037, 593), (969, 960, 1038, 1294), (1325, 1993, 1380, 2320), (93, 2152, 218, 2824), (33, 821, 223, 1371), (39, 1369, 249, 1577))
         dimensiones= [dim_nomini, dim_apell_ini, dim_cc_ini, dim_act_ini, dim_cant_ini, dim_uni_ini, dim_mun_ini, dim_dia_ini, dim_firma_ini, dim_huella_ini]
-        nombres = ['Nombre', 'Apellido', 'Cc', 'Act', 'Cantidad','Unidad','Municipio','Fecha', 'Firma', 'Huella']
+        nombres = ['1. Nombre', '2. Apellido', '3. Cc', '8. Act', '4. Cantidad','5. Unidad','6. Municipio','7. Fecha', '10. Firma', '9. Huella']
         
         for i, dim in enumerate(dimensiones):
             imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
 
     elif rutadoc=='doc_vin':
         # especificar el área que deseas cortar en  ALCALDIA
-        dimfull = ((112,466,2569,2401))
+        dimfull = ((112,100,4200,5000))
 
         dimensiones = [dimfull]
         nombres = ['full']
@@ -186,7 +184,7 @@ def doc(ruta,folder,numb,rutadoc,borrar):
 
     elif rutadoc=='doc_sisben':
         # especificar el área que deseas cortar en  SISBEN
-        dimfull = ((112,466,2569,2401))
+        dimfull = ((112,100,4200,5000))
 
         dimensiones = [dimfull]
         nombres = ['full']
@@ -195,9 +193,11 @@ def doc(ruta,folder,numb,rutadoc,borrar):
 
     elif rutadoc=='doc_trdatos':
         # especificar el área que deseas cortar en  ALCALDIA
-        dimfull = ((112,466,2569,2401))
+        dimfull = ((112,100,4200,5000))
 
         dimensiones = [dimfull]
         nombres = ['full']
         for i, dim in enumerate(dimensiones):
             imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
+
+
