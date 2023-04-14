@@ -1,0 +1,5 @@
+1. Nombre
+2. Apellido
+3. Cc
+4. Cantidad
+6. Municipio

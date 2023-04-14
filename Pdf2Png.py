@@ -31,8 +31,8 @@ def Pdf2Png1(ruta_input, folder_img, doc, borrar):
             for page_num in range(len(pdf.pages)):
                 page = pdf.pages[page_num]
                 images = convert_from_path(pdf_path, 500, first_page=page_num+1, last_page=page_num+1, poppler_path=r'C:\Program Files\poppler-23.01.0\Library\bin')
-                gray_image = images[0].convert('L') # convierte la imagen a escala de grises
-                gray_image.save(f'{ruta_input}/{folder_img}/{borrar}/{page_num+1}.jpg', 'JPEG')
+                image = images[0]  # obtener la primera imagen de la lista
+                image.save(f'{ruta_input}/{folder_img}/{borrar}/{page_num+1}.jpg', 'JPEG')
 
 
 

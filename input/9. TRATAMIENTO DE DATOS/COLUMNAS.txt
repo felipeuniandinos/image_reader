@@ -1,0 +1,5 @@
+1. Nombre
+2. Apellido
+3. Cc
+6. Municipio
+7. Fecha

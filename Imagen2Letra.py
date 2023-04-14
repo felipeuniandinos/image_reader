@@ -3,11 +3,8 @@ import pytesseract
 import cv2
 import numpy as np
 import os
-import pandas as pd
 
-
-
-#################################################3
+#################################################
 def Img2Str(ruta_input,name,folder_img):
     #se debe instalar tesseract-ocr-w64-setup-5.3.0.20221222, es un instalador
     #ubicado en este folder. luego se podrá ejecutar la siguiente linea de codigo.
@@ -36,7 +33,7 @@ def ImgCutFirm(im,cc_str,ruta_output,folder_out1,ruta_input,name,folder_img,etiq
 
 
 def PrePross(input,pros,borrar):
-    
+
     # Configuración de tesseract
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     custom_config = r'--oem 3 --psm 6'
@@ -117,87 +114,51 @@ def PrePross(input,pros,borrar):
 
 def doc(ruta,folder,numb,rutadoc,borrar):
     # abrir la imagen
-    imagen = Image.open(ruta+'//'+folder+'//'+borrar+'//'+numb)   
+    imagen = Image.open(ruta+'//'+folder+'//'+borrar+'//'+numb)  
     
+    # Convertir la imagen en escala de grises
+    imagen = imagen.convert('L')
 
-    if rutadoc=='doc_eq':
-        # especificar el área que deseas cortar en  ES IM 004 DOCUMENTO EQUIVALENTE
-        dimfull = ((112,100,4200,5000))
+    # Binarizar la imagen
+    threshold = 200 # Este es el valor umbral. Los valores mayores o iguales a este se convierten en negro y los valores menores se convierten en blanco
+    imagen = imagen.point(lambda x: 0 if x < threshold else 255, '1')
 
-        dimensiones = [dimfull]
-        nombres = ['full']
-        for i, dim in enumerate(dimensiones):
-            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
 
+    if not os.path.exists('output/' + rutadoc):
+        os.makedirs('output/' + rutadoc)
+
+    if rutadoc=='1. DECLARACION DE PRODUCCION':
+        # especificar el área que deseas cortar en  ES IM 004 DECLARACION DE PRODUCCION
+        dim_nomini, dim_apell_ini, dim_cc_ini, dim_act_ini, dim_cant_ini, dim_uni_ini, dim_mun_ini, dim_dia_ini, dim_firma_ini, dim_huella_ini = ((1389, 184, 1564, 815), (1389, 1110, 1564, 1617), (1390, 1793, 1564, 2076), (1388, 2360, 1500, 2800), ( 818,325,910,600), (818, 960, 1038, 1294), (1218, 1993, 1300, 2432), (93, 2152, 218, 2824), (33, 821, 223, 1371), (39, 1369, 249, 1577))
+        dimensiones= [dim_nomini, dim_apell_ini, dim_cc_ini, dim_act_ini, dim_cant_ini, dim_uni_ini, dim_mun_ini, dim_dia_ini, dim_firma_ini, dim_huella_ini]
+        nombres = ['1. Nombre', '2. Apellido', '3. Cc', '8. Act', '4. Cantidad','5. Unidad','6. Municipio','7. Fecha', '9. Firma', '10. Huella']
+    
         
-    elif rutadoc=='doc_rut':
+    elif rutadoc=='2. RUT':
         # especificar el área que deseas cortar en  RUT
-        dimQr, dimCc, dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2, dimName, LName = ((676,270,895,523), (975,752,1214,789),(214,611,508,654),(33,1671,159,1715),(457,1675,580,1711),(1002,1667,1120,1710),(1133,1667,1245,1928),(815,933,1120,977),(11,933,700,981))
+        dimQr, dimCc, dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2, dimName, LName = ((676,270,895,523), (975,752,1214,789),(214,611,508,654),(33,1671,159,1715),(457,1675,580,1711),(1002,1667,1120,1710),(1133,1667,1245,1718),(815,933,964,977),(11,933,800,981))
         dimensiones = [dimQr, dimCc,  dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2,dimName,LName]
         nombres = ['9. CODIGO_QR', '3. Cc', '4. Nit', '5. Act_ppa', '6. Act_sria', '7. Otras_act','8. Otras_act1','1. Nombre','2. Apellido']
-        for i, dim in enumerate(dimensiones):
-            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
-
-    elif rutadoc=='doc_ced':
+        
+    elif rutadoc=='2.1 SISBEN COOR':
+        # especificar el área que deseas cortar en  SISBEN
+        sisben_name, sisben_lname, sisben_cc,sisbe_date = ((2191,1497,2735,1549), (2139,1565,2791,1633),(2199,1419,2763,1475),(2579,2247,3067,2371))
+        dimensiones = [sisben_name, sisben_lname, sisben_cc,sisbe_date]
+        nombres = ['1. Nombre', '2. Apellido', '3. Cc', '7. Fecha']
+        
+    
+    else:
         # especificar el área que deseas cortar en  CEDULA
         dimfull = ((112,466,4200,5000))
         dimensiones = [dimfull]
         nombres = ['full']
-        for i, dim in enumerate(dimensiones):
-            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
-    elif rutadoc=='doc_alc':
-        # especificar el área que deseas cortar en  ALCALDIA
-        dimfull = ((112,100,4200,5000))
+    
+    
+    if len(nombres) < len(dimensiones):
+        nombres += [f"subdir_{i+1}" for i in range(len(dimensiones)-len(nombres))]
+    for i, dim in enumerate(dimensiones):
+        if not os.path.exists(f"output/{rutadoc}/{nombres[i]}"):
+            os.makedirs(f"output/{rutadoc}/{nombres[i]}")
+        imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
 
-        dimensiones = [dimfull]
-        nombres = ['full']
-        for i, dim in enumerate(dimensiones):
-            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
-
-    elif rutadoc=='doc_carta':
-        # especificar el área que deseas cortar en  CARTA REPRESENTANTE LEGAL
-        dimfull = ((112,100,4200,5000))
-
-        dimensiones = [dimfull]
-        nombres = ['full']
-        for i, dim in enumerate(dimensiones):
-            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
-
-    elif rutadoc=='doc_decProd':
-
-        # especificar el área que deseas cortar en  ES IM 004 DECLARACION DE PRODUCCION
-        dim_nomini, dim_apell_ini, dim_cc_ini, dim_act_ini, dim_cant_ini, dim_uni_ini, dim_mun_ini, dim_dia_ini, dim_firma_ini, dim_huella_ini = ((1467, 184, 1564, 815), (1462, 1110, 1585, 1617), (1469, 1793, 1585, 2076), (1471, 2360, 1548, 2800), (963, 328, 1037, 593), (969, 960, 1038, 1294), (1325, 1993, 1380, 2320), (93, 2152, 218, 2824), (33, 821, 223, 1371), (39, 1369, 249, 1577))
-        dimensiones= [dim_nomini, dim_apell_ini, dim_cc_ini, dim_act_ini, dim_cant_ini, dim_uni_ini, dim_mun_ini, dim_dia_ini, dim_firma_ini, dim_huella_ini]
-        nombres = ['1. Nombre', '2. Apellido', '3. Cc', '8. Act', '4. Cantidad','5. Unidad','6. Municipio','7. Fecha', '10. Firma', '9. Huella']
-        
-        for i, dim in enumerate(dimensiones):
-            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
-
-    elif rutadoc=='doc_vin':
-        # especificar el área que deseas cortar en  ALCALDIA
-        dimfull = ((112,100,4200,5000))
-
-        dimensiones = [dimfull]
-        nombres = ['full']
-        for i, dim in enumerate(dimensiones):
-            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
-
-    elif rutadoc=='doc_sisben':
-        # especificar el área que deseas cortar en  SISBEN
-        dimfull = ((112,100,4200,5000))
-
-        dimensiones = [dimfull]
-        nombres = ['full']
-        for i, dim in enumerate(dimensiones):
-            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
-
-    elif rutadoc=='doc_trdatos':
-        # especificar el área que deseas cortar en  ALCALDIA
-        dimfull = ((112,100,4200,5000))
-
-        dimensiones = [dimfull]
-        nombres = ['full']
-        for i, dim in enumerate(dimensiones):
-            imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
-
-
+    print("Paso a salida recorte: ", borrar,rutadoc, nombres, numb)
