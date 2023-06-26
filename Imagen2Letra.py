@@ -3,49 +3,35 @@ import pytesseract
 import cv2
 import numpy as np
 import os
-
+import unicodedata
+import shutil
 #################################################
-def Img2Str(ruta_input,name,folder_img):
-    #se debe instalar tesseract-ocr-w64-setup-5.3.0.20221222, es un instalador
-    #ubicado en este folder. luego se podrá ejecutar la siguiente linea de codigo.
-    pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
-    # Cargar imagen
-    img = cv2.imread(ruta_input+'\\'+folder_img+'\\'+name)
 
-    # Aplicar OCR
-    texto = pytesseract.image_to_string(img)
-
-    # Imprimir resultado
-    return(texto)
-
-def ImgCut(ruta_input,name,folder_img,etiqueta,x_etiqueta_ini,x_etiqueta_fin,y_etiqueta_ini,y_etiqueta_fin):
-    img = cv2.imread(ruta_input+'\\'+folder_img+'\\'+name)
-    crop_img = img[x_etiqueta_ini:x_etiqueta_fin,y_etiqueta_ini:y_etiqueta_fin]
-    cv2.imwrite(ruta_input+'\\'+folder_img+'\\'+etiqueta+name, crop_img)
-    return(etiqueta+name)
-
-def ImgCutFirm(im,cc_str,ruta_output,folder_out1,ruta_input,name,folder_img,etiqueta,x_etiqueta_ini,x_etiqueta_fin,y_etiqueta_ini,y_etiqueta_fin):
-    img = cv2.imread(ruta_input+'\\'+folder_img+'\\'+name)
-    crop_img = img[x_etiqueta_ini:x_etiqueta_fin,y_etiqueta_ini:y_etiqueta_fin]
-    cv2.imwrite(ruta_output+'\\'+folder_out1+'\\'+im[:-5]+'_'+cc_str+'.png', crop_img)
-    img = Image.open(ruta_output+'\\'+folder_out1+'\\'+im[:-5]+'_'+cc_str+'.png')
-    return(im[:-5]+'_'+cc_str+'.png')
-
-
-def PrePross(input,pros,borrar):
+def PrePross(folder,pros,borrar):
 
     # Configuración de tesseract
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     custom_config = r'--oem 3 --psm 6'
 
     folder_path = "input/zborrar/"+borrar  
-    files = os.listdir(folder_path)
+    files = [f for f in os.listdir(folder_path) if f.endswith('.jpg')]
     for file in files:
     # Comprobar si el archivo es una imagen jpg
+             
         if file.endswith(".jpg"):
             # Ruta completa del archivo
-            imagen = os.path.join(input,'zborrar',borrar,file)
+            imagen = os.path.join('input','zborrar',borrar,file)
             img=Image.open(imagen) 
+            seachtype= os.path.join('input',folder,'GIRO.txt')
+            try:
+                with open(seachtype, 'r') as f:
+                    first_word = f.readline().split()[0]
+            except FileNotFoundError:
+                # Si el archivo no se encuentra, asigna una cadena vacía a first_word
+                first_word = ""
+            if "si" in first_word:
+                if img.width > img.height:
+                    img = img.rotate(90, expand=True)
             gray = img.convert('L')
             # Aplicar un umbral a la imagen
             threshold = 127
@@ -82,46 +68,23 @@ def PrePross(input,pros,borrar):
             width = 1817
             height = 2889
             resized_img = cropped_img.resize((width, height))
-            resized_img.save(input+'\\zborrar\\'+borrar+'\\'+pros+'\\'+file)
-            #CAMBIO ROTACIÓN en PROD
-            if borrar == 'borrar6':
-                imagen = os.path.join(input+'\\zborrar\\'+borrar+'\\'+pros+'\\'+file)
-                img = Image.open(imagen)
-                exif_info = img._getexif()
-                # Obtener la información de Exif de la imagen
-                exif_info = img._getexif()
+            if "si" in first_word:
+                corr_resized_img=resized_img.crop((1671, 116, 1782, 869))
+                corr_resized_img=corr_resized_img.rotate(90, expand=True)
+                text = pytesseract.image_to_string(corr_resized_img, config=custom_config, lang='spa')
+                text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('utf-8')
+                if 'mineria' not in text.lower():   
+                    resized_img = resized_img. rotate(180, expand=True)
+                # Guardar la imagen modificad
+            resized_img.save('input'+'\\zborrar\\'+borrar+'\\'+pros+'\\'+file)
+            print("PROCESADO: ", borrar,", ",file)
 
-                if exif_info:
-                    # Obtener la etiqueta Exif Orientation (274)
-                    exif_orientation = exif_info.get(274)
-
-                    # Determinar la rotación requerida según la orientación actual
-                    if img.width > img.height:
-                        img = img.rotate(90, expand=True)
-                    text = pytesseract.image_to_string(img.crop((760, 18, 818, 428)), config=custom_config)
-                    if 'mineria' not in text.lower():
-                        img = img.rotate(180, expand=True)
-                    # Guardar la imagen modificada
-                img.save(input+'\\zborrar\\'+borrar+'\\'+pros+'\\'+file)
-            #OTROS
-            else :
-
-                
-                print("Reprocesamiento ", borrar,file)
-    
 
     #################################################
 
 def doc(ruta,folder,numb,rutadoc,borrar):
     # abrir la imagen
     imagen = Image.open(ruta+'//'+folder+'//'+borrar+'//'+numb)  
-    
-    # Convertir la imagen en escala de grises
-    imagen = imagen.convert('L')
-
-    # Binarizar la imagen
-    threshold = 200 # Este es el valor umbral. Los valores mayores o iguales a este se convierten en negro y los valores menores se convierten en blanco
-    imagen = imagen.point(lambda x: 0 if x < threshold else 255, '1')
 
 
     if not os.path.exists('output/' + rutadoc):
@@ -136,16 +99,10 @@ def doc(ruta,folder,numb,rutadoc,borrar):
         
     elif rutadoc=='2. RUT':
         # especificar el área que deseas cortar en  RUT
-        dimQr, dimCc, dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2, dimName, LName = ((676,270,895,523), (975,752,1214,789),(214,611,508,654),(33,1671,159,1715),(457,1675,580,1711),(1002,1667,1120,1710),(1133,1667,1245,1718),(815,933,964,977),(11,933,800,981))
-        dimensiones = [dimQr, dimCc,  dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2,dimName,LName]
-        nombres = ['9. CODIGO_QR', '3. Cc', '4. Nit', '5. Act_ppa', '6. Act_sria', '7. Otras_act','8. Otras_act1','1. Nombre','2. Apellido']
-        
-    elif rutadoc=='2.1 SISBEN COOR':
-        # especificar el área que deseas cortar en  SISBEN
-        sisben_name, sisben_lname, sisben_cc,sisbe_date = ((2191,1497,2735,1549), (2139,1565,2791,1633),(2199,1419,2763,1475),(2579,2247,3067,2371))
-        dimensiones = [sisben_name, sisben_lname, sisben_cc,sisbe_date]
-        nombres = ['1. Nombre', '2. Apellido', '3. Cc', '7. Fecha']
-        
+        dimQr, dimCc, dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2, dimName, LName, rut_fecha = ((676,270,895,523), (975,752,1214,789),(214,611,508,654),(33,1671,159,1715),(457,1675,580,1711),(1002,1667,1120,1710),(1133,1667,1245,1718),(815,933,964,977),(11,933,800,981),(1356,2554,1504,2597))
+        dimensiones = [dimQr, dimCc,  dimNit, dimActpal, dimActsria, dimOtact1, dimOtact2,dimName,LName, rut_fecha]
+        nombres = ['9. CODIGO_QR', '3. Cc', '4. Nit', '5. Act_ppa', '6. Act_sria', '7. Otras_act','8. Otras_act1','1. Nombre','2. Apellido','10. Fecha rut']
+       
     
     else:
         # especificar el área que deseas cortar en  CEDULA
@@ -162,3 +119,29 @@ def doc(ruta,folder,numb,rutadoc,borrar):
         imagen.crop(dim).save(f"output/{rutadoc}/{nombres[i]}/{numb}")
 
     print("Paso a salida recorte: ", borrar,rutadoc, nombres, numb)
+
+
+def docfull(ruta,folder,rutadoc,borrar):
+    if not os.path.exists('output/' + rutadoc):
+        os.makedirs('output/' + rutadoc)
+    nombres = 'full'
+    if not os.path.exists(f"output/{rutadoc}/{nombres}"):
+            os.makedirs(f"output/{rutadoc}/{nombres}")
+    # Ruta de la carpeta de origen
+    ruta_origen = "input/zborrar/"+borrar+'/'
+
+    # Ruta de la carpeta de destino
+    ruta_destino = os.path.join('output',rutadoc,nombres)
+
+    # Obtener la lista de archivos en la carpeta de origen
+    archivos = os.listdir(ruta_origen)
+
+    # Iterar sobre cada archivo en la carpeta de origen
+    for archivo in archivos:
+        # Comprobar si el archivo es una imagen
+        if archivo.endswith(".jpg") or archivo.endswith(".jpeg") or archivo.endswith(".png"):
+            # Construir la ruta completa de origen y destino
+            ruta_archivo_origen = os.path.join(ruta_origen, archivo)
+            ruta_archivo_destino = os.path.join(ruta_destino, archivo)
+            # Copiar el archivo de origen al destino
+            shutil.copy2(ruta_archivo_origen, ruta_archivo_destino)

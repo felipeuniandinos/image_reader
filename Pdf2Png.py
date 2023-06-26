@@ -3,6 +3,7 @@ import re
 import os
 from pdf2image import convert_from_path
 from PyPDF2 import PdfReader
+from PIL import Image, ImageEnhance
 
 def ordenar_numeros(nombre_archivo): #funcion para obtener imagenes en orden
     # Extraer el número del nombre de archivo utilizando una expresión regular
@@ -32,7 +33,17 @@ def Pdf2Png1(ruta_input, folder_img, doc, borrar):
                 page = pdf.pages[page_num]
                 images = convert_from_path(pdf_path, 500, first_page=page_num+1, last_page=page_num+1, poppler_path=r'C:\Program Files\poppler-23.01.0\Library\bin')
                 image = images[0]  # obtener la primera imagen de la lista
-                image.save(f'{ruta_input}/{folder_img}/{borrar}/{page_num+1}.jpg', 'JPEG')
+                # mejorar la calidad de la imagen
+                img = image.convert('L')
+                if  doc=='3. CEDULA':
+                    #Binarizar la imagen
+                    threshold = 160 # Este es el valor umbral. Los valores mayores o iguales a este se convierten en negro y los valores menores se convierten en blanco
+                    img = img.point(lambda x: 0 if x < threshold else 255, '1')
+                else:
+                    #Binarizar la imagen
+                    threshold = 150 # Este es el valor umbral. Los valores mayores o iguales a este se convierten en negro y los valores menores se convierten en blanco
+                    img = img.point(lambda x: 0 if x < threshold else 255, '1')
+                img.save(f'{ruta_input}/{folder_img}/{borrar}/{page_num+1}.jpg', 'JPEG')
 
 
 
