@@ -1,0 +1,37 @@
+DOCUMENTOS OBLIGATORIOS:
+1. DECLARACIOPN DE PRODUCCION
+2. RUT
+3. CEDULA
+
+PARA BUSQUEDA AVANZADA:
+	- Crear un txt en la carpeta que requiera una busqueda avanzada,
+	el nombre del txt debe ser "TIPO BUSQUEDA".
+	- Escribir en el txt el siguiente texto sin comillas: "avanzado".
+	- Guardar.
+
+COLUMNAS A BUSCAR:
+
+Las columnas disponibles para busqueda son:
+1. Nombre	2. Apellido	3. Cc	4. Cantidad	5. Unidad	6. Municipio	7. Fecha	8. Act
+
+
+Para definir la busqueda:
+	- Crear un txt en la carpeta que requiera una busqueda avanzada,
+	el nombre del txt debe ser "COLUMNAS".
+	- Escribir en el txt las columnas que desee, por ejemplo: 
+		1. Nombre 
+		2. Apellido
+		6. Municipio
+		7. Fecha								
+ .
+	- Guardar.
+TENER EN CUENTA:
+	si al buscar columna se añade '7. Fecha' buscará la primera linea de texto donde haya un año y la reescribira en el excel de salida.
+	si no se añade '7. Fecha se debe generar otro txt en la ruta de la carpeta en input que recibira el nombre de 'FECHA'.
+
+	Como ajustar rangos en 'FECHA':
+		-Al crear el txt se debe llenar con 2 lineas separadas por un cambio de linea (enter) donde se tenga un titulo separado por ':' con la parte del texto que se desea, por ejemplo:
+			8. Fecha inicio:el dd de mm de aaaa
+			unamed: ddmmaaaa
+		donde, ddmmaaaa son los espacios donde se espera encontrar el dia, mes y año, respectivamente; en el documento a buscar.
+		las palabras con acento, como días, se deben escribir con un espacio en donde tenga la puntuación, quedando 'd as' en nuestro ejemplo.

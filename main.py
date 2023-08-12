@@ -1,10 +1,12 @@
-from Pdf2Png import Pdf2Png1,ordenar_numeros
+from Pdf2Png import Pdf2Png1,ordenar_numeros, pausa
 import multiprocessing
-from Imagen2Letra import doc, PrePross
-from writeExcel import write, merge_excel_files,lector,mergemaster,definir,unir_contador_columnas
+from Imagen2Letra import doc, docfull,PrePross
+from writeExcel import write, merge_excel_files,lector,mergemaster,definir,unir_contador_columnas,unificarCEDULA
+from lectoraws import AWS
 import os
 from datetime import datetime
-import time                
+import time             
+from PIL import Image   
 
 
 start_time = time.time()
@@ -62,7 +64,7 @@ folpros=[procesado,procesado1]
 ruta_output= 'output'
 salida= 'salida'
 folder_sisben, sisben_name, sisben_lname, sisben_cc,sisben_date = ('2.1 SISBEN COOR', '1. Nombre', '2. Apellido', '3. Cc', '7. Fecha')
-folder_rut, rut_Qr,rut_cc, rut_nit, rut_ppal, rut_sria, rut_oth,rut_oth1,rut_name,rut_lname = ('2. RUT', '9. CODIGO_QR', '3. Cc', '4. Nit', '5. Act_ppa', '6. Act_sria', '7. Otras_act','8. Otras_act1','1. Nombre','2. Apellido')
+folder_rut, rut_Qr,rut_cc, rut_nit, rut_ppal, rut_sria, rut_oth,rut_oth1,rut_name,rut_lname,rut_fecha= ('2. RUT', '9. CODIGO_QR', '3. Cc', '4. Nit', '5. Act_ppa', '6. Act_sria', '7. Otras_act','8. Otras_act1','1. Nombre','2. Apellido','10. Fecha rut')
 folder_decProd, decProd_name, decProd_lname, decProd_cc, decProd_firma, decProd_act,decProd_huel,decProd_cant,decProd_uni,decProd_mun,decProd_date = ('1. DECLARACION DE PRODUCCION','1. Nombre', '2. Apellido', '3. Cc', '9. Firma', '8. Act', '10. Huella','4. Cantidad','5. Unidad','6. Municipio','7. Fecha')
 
 
@@ -75,37 +77,28 @@ if __name__ == '__main__':
             p00 = pool.apply_async(Pdf2Png1, args=(ruta_input, folder_img1, carpeta, borrar))
             archivos_img = [f for f in os.listdir(ruta_input + '\\' + folder_img1 + '\\' + borrar) if f.endswith('.jpg')]
             archivos_img = sorted(archivos_img, key=ordenar_numeros)
-           
-        p00.get()   
+        p00.wait()   
         #FIJOS
-        p01=pool.apply_async(PrePross, args=(ruta_input,pross,'borrar2'))
-        p02=pool.apply_async(PrePross, args=(ruta_input,pross,'borrar1'))
-       
-        p01.get()
-        p02.get()
+        p01= pool.apply_async(PrePross, args=(folder_decProd    ,pross,'borrar1'))
+        p01.wait()
+        p02=pool.apply_async(PrePross, args=(ruta_input,pross,'borrar2'))
+        p02.wait()
             
         # Obtener una nueva lista de carpetas comenzando en la posición 3
         sub_borrar = folder[2:]
         sub_carpeta= carpetas[2:]
+        
         for archivo in archivos_img: 
-            p03 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, folder_decProd, procesado))
-            p04 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, folder_rut, procesado1))
-            # p005 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, folder_sisben, 'borrar3'))
-            for carpeta_out,borrar in zip (sub_carpeta,sub_borrar):    
-                p05 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, carpeta_out, borrar))
+            for carpeta_out,borrarito in zip (sub_carpeta,sub_borrar):    
+                p05 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, carpeta_out, borrarito))
                 p05.get()
-                p10 = pool.apply_async(write, args=(ruta_output, carpeta_out, 'full', archivo))
+            p03 = pool.apply_async(AWS, args=(archivo,))
+            p04 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, folder_rut, procesado1))
+            
+            p03.get()
+            p04.get()
             
             
-            #    #DECLARACION DE PRODUCCIÓN    
-            p11 = pool.apply_async(write, args=(ruta_output, folder_decProd, decProd_name, archivo))
-            p12 = pool.apply_async(write, args=(ruta_output, folder_decProd, decProd_lname, archivo))
-            p13 = pool.apply_async(write, args=(ruta_output, folder_decProd, decProd_cc, archivo))
-            p14 = pool.apply_async(write, args=(ruta_output, folder_decProd, decProd_act, archivo))
-            p15 = pool.apply_async(write, args=(ruta_output, folder_decProd, decProd_cant, archivo))
-            p16 = pool.apply_async(write, args=(ruta_output, folder_decProd, decProd_uni, archivo))
-            p17 = pool.apply_async(write, args=(ruta_output, folder_decProd, decProd_mun, archivo))
-            p18 = pool.apply_async(write, args=(ruta_output, folder_decProd, decProd_date, archivo))
             #RUT
             p19 = pool.apply_async(write, args=(ruta_output, folder_rut, rut_cc, archivo))
             p110 = pool.apply_async(write, args=(ruta_output, folder_rut, rut_nit, archivo))
@@ -115,21 +108,9 @@ if __name__ == '__main__':
             p114 = pool.apply_async(write, args=(ruta_output, folder_rut, rut_oth1, archivo))
             p115 = pool.apply_async(write, args=(ruta_output, folder_rut, rut_name, archivo))
             p116 = pool.apply_async(write, args=(ruta_output, folder_rut, rut_lname, archivo))
-            #SISBEN COOR
-            # p117 = pool.apply_async(write, args=(ruta_output, folder_sisben, sisben_name, archivo))
-            # p118 = pool.apply_async(write, args=(ruta_output, folder_sisben, sisben_lname, archivo))
-            # p119 = pool.apply_async(write, args=(ruta_output, folder_sisben, sisben_cc, archivo))
-            # p120 = pool.apply_async(write, args=(ruta_output, folder_sisben, sisben_date, archivo))
-            p03.wait()
-            p04.wait()
-            p10.wait()
-            p11.wait()
-            p12.wait()
-            p13.wait()
-            p15.wait()
-            p16.wait()
-            p17.wait()
-            p18.wait()
+            p117 = pool.apply_async(write, args=(ruta_output, folder_rut, rut_fecha, archivo))
+            
+            
             p19.wait()
             p110.wait()
             p111.wait()
@@ -138,30 +119,30 @@ if __name__ == '__main__':
             p114.wait()
             p115.wait()
             p116.wait()
-            # p117.wait()
-            # p118.wait()
-            # p119.wait()
-            # p120.wait()
+            p117.wait()
+            
+            # p005 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, folder_sisben, 'borrar3'))
+            for carpeta_out,borrarito in zip (sub_carpeta,sub_borrar):    
+                p10 = pool.apply_async(write, args=(ruta_output, carpeta_out, 'full', archivo))
+                p10.get()
+            p10.wait()
 
-        #MEZCLA LOS EXCEL RUT Y DECPROD   
-        p20= pool.apply_async(merge_excel_files, args=(ruta_output, folder_rut, salida))
-        p21= pool.apply_async(merge_excel_files, args=(ruta_output, folder_decProd, salida))
-        #p22= pool.apply_async(merge_excel_files, args=(ruta_output, folder_sisben, salida))
-        p20.get()
-        p21.get()
-        #p22.wait()
-
-        p400=pool.apply(definir,args=(folder_decProd,folder_rut, '1. Nombre'))
-        p401=pool.apply(definir,args=(folder_decProd,folder_rut, '2. Apellido'))
-        p401=pool.apply(definir,args=(folder_decProd,folder_rut, '3. Cc'))
-        
-        
+        pausa()
         #Lector
         for titulo in sub_carpeta:
             p40=pool.apply_async(lector,args=('1. DECLARACION DE PRODUCCION_'+fecha_actual+'.xlsx', titulo))
             p40.get()
         
+        p402=pool.apply_async(unificarCEDULA,args=('1. DECLARACION DE PRODUCCION', '3. CEDULA'))
+        p402.get()
+        #MEZCLA LOS EXCEL RUT Y DECPROD   
+        p20= pool.apply_async(merge_excel_files, args=(ruta_output, folder_rut, salida))
+        
+        p20.get()
 
+        p400=pool.apply(definir,args=(folder_decProd,folder_rut, '1. Nombre'))
+        p401=pool.apply(definir,args=(folder_decProd,folder_rut, '2. Apellido'))
+        p4011=pool.apply(definir,args=(folder_decProd,folder_rut, '3. Cc'))
         #MEZCLA LOS EXC RESTANTES            
         p50=pool.apply(mergemaster,args=(ruta_output, salida))
         p51=pool.apply(mergemaster,args=(ruta_output, 'errores'))
@@ -169,11 +150,14 @@ if __name__ == '__main__':
 
 
     for dir_name in carpetas :
-        dir_path = os.path.join(ruta_output, dir_name)
-        for file in os.listdir(dir_path):
-            if file.endswith('.xlsx'):
-                file_path = os.path.join(dir_path, file)
-                os.remove(file_path)
+        try:
+            dir_path = os.path.join(ruta_output, dir_name)
+            for file in os.listdir(dir_path):
+                if file.endswith('.xlsx'):
+                    file_path = os.path.join(dir_path, file)
+                    os.remove(file_path)
+        except: 
+            print("no encontro documento a eliminar: ", dir_path)
 
     for dir_name in folder :
         dir_path = os.path.join(ruta_input,folder_img1, dir_name)

@@ -3,7 +3,11 @@ import re
 import os
 from pdf2image import convert_from_path
 from PyPDF2 import PdfReader
-from PIL import Image, ImageEnhance
+import msvcrt
+
+def pausa():
+    print("Presiona una tecla para continuar...")
+    msvcrt.getch()  # Espera a que el usuario presione una tecla
 
 def ordenar_numeros(nombre_archivo): #funcion para obtener imagenes en orden
     # Extraer el número del nombre de archivo utilizando una expresión regular
@@ -18,10 +22,8 @@ def ordenar_numeros(nombre_archivo): #funcion para obtener imagenes en orden
 # Convierte cada página a una imagen
 def Pdf2Png1(ruta_input, folder_img, doc, borrar):
     folder_path = os.path.join(ruta_input,doc)
-
     # Obtener la lista de archivos en la carpeta
     files = os.listdir(folder_path)
-
     # Filtrar solo los archivos con extensión .pdf
     pdf_files = [f for f in files if f.endswith('.pdf')]
     for pdf_file in pdf_files:
@@ -35,15 +37,16 @@ def Pdf2Png1(ruta_input, folder_img, doc, borrar):
                 image = images[0]  # obtener la primera imagen de la lista
                 # mejorar la calidad de la imagen
                 img = image.convert('L')
-                if  doc=='3. CEDULA':
-                    #Binarizar la imagen
-                    threshold = 160 # Este es el valor umbral. Los valores mayores o iguales a este se convierten en negro y los valores menores se convierten en blanco
+                if doc == '3. CEDULA':
+                    threshold = 130  # Este es el valor umbral. Los valores mayores o iguales a este se convierten en negro y los valores menores se convierten en blanco
                     img = img.point(lambda x: 0 if x < threshold else 255, '1')
+                   
                 else:
-                    #Binarizar la imagen
-                    threshold = 150 # Este es el valor umbral. Los valores mayores o iguales a este se convierten en negro y los valores menores se convierten en blanco
+                    # Binarizar la imagen
+                    threshold = 130  # Este es el valor umbral. Los valores mayores o iguales a este se convierten en negro y los valores menores se convierten en blanco
                     img = img.point(lambda x: 0 if x < threshold else 255, '1')
                 img.save(f'{ruta_input}/{folder_img}/{borrar}/{page_num+1}.jpg', 'JPEG')
+
 
 
 

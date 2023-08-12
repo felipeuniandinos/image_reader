@@ -62,7 +62,7 @@ def write(ruta, folder, numb, contador):
                 texto = pytesseract.image_to_string(seccion, lang='spa')
 
                 # Procesar y manipular el texto
-                texto_limpio = re.sub(r'[^a-zA-Z0-9,. ]+', ' ', texto)
+                texto_limpio = re.sub(r"[^a-zA-ZñÑ0-9\s,.]++", " ", str(texto))
                 palabras = re.findall(r'[a-zA-Z]+|[0-9]+(?:[,.][0-9]+)?', texto_limpio)
                 texto_total += ' '.join(palabras) + '\n'
 
@@ -191,6 +191,16 @@ def lector(excel_or,rutatxt):
     df_txt = pd.DataFrame()
     columnas_or = df.columns.to_list()
 
+    # Verifica la longitud de los DataFrames
+    max_length = max(len(df), len(df_txt))
+
+    # Rellena los DataFrames con 'x' hasta que tengan la misma longitud
+    if len(df) < max_length:
+        df = df.reindex(range(max_length)).fillna('x')
+
+    if len(df_txt) < max_length:
+        df_txt = df_txt.reindex(range(max_length)).fillna('x')
+
     try:
         with open(inputcol, 'r') as f:
             # leer todo el contenido del archivo
@@ -223,7 +233,7 @@ def lector(excel_or,rutatxt):
 
 
     df['3. Cc'] = df['3. Cc'].replace(regex=r'\D', value='')
-    df['4. Cantidad'] = df['4. Cantidad'].apply(lambda x: re.sub(r'[^\d,.\s]+', '', x))
+    df['4. Cantidad'] = df['4. Cantidad'].astype(str).apply(lambda x: re.sub(r'[^\d,.\s]+', '', x))
     df['4. Cantidad'] = df['4. Cantidad'].apply(lambda x: "x" if x.strip() == "" else str(float(x)) if x.isdigit() else x.replace(" ", "x"))
     df['4. Cantidad'] = df['4. Cantidad'].apply(lambda x: float(x) if (isinstance(x, str) and x.isdigit() and 10 <= float(x) <= 40) else x)
 
@@ -408,32 +418,24 @@ def mergemaster(output,salida):
     df_concatenado.to_excel(output+"/"+salida+fecha_actual+".xlsx", index=False)
 
 def definir(enrutador,enrutador2,colum):
-
     fecha_actual = datetime.datetime.now().strftime("%d_%m_%Y")
-    xlsx_name1='output\\salida\\'+enrutador+'_'+fecha_actual+'.xlsx'# ruta del archivo output para el primer pdf
-    xlsx_name2='output\\salida\\'+enrutador2+'_'+fecha_actual+'.xlsx'# ruta del archivo output para el primer pdf
+    xlsx_name1 = 'output\\salida\\' + enrutador + '_' + fecha_actual + '.xlsx'  # ruta del archivo output para el primer pdf
+    xlsx_name2 = 'output\\salida\\' + enrutador2 + '_' + fecha_actual + '.xlsx'  # ruta del archivo output para el primer pdf
 
     # Leer los archivos Excel
-    try:
-        df1 = pd.read_excel(xlsx_name1)
-        df2 = pd.read_excel(xlsx_name2)
-        
-    except FileNotFoundError:
-        # Si el archivo no se encuentra
-        print("Aun no se ha genenrado el excel")
-
+    df1 = pd.read_excel(xlsx_name1)
+    df2 = pd.read_excel(xlsx_name2)
 
 
     df2['3. Cc'] = df1['3. Cc'].astype(str)
-
     df2['5. Act_ppa'] = df2['5. Act_ppa'].astype(str)
 
     df2['3. Cc'] = df2['3. Cc'].apply(lambda x: re.sub(r'[^\d,.\s]+', '', x))
     df2['3. Cc'] = df2['3. Cc'].apply(lambda x: "x" if x.strip() == "" else str(int(x)) if x.isdigit() else x.replace(" ", "x"))
     df2['5. Act_ppa'] = df2['5. Act_ppa'].apply(lambda x: re.sub(r'[^\d,.\s]+', '', x))
     df2['5. Act_ppa'] = df2['5. Act_ppa'].apply(lambda x: "x" if x.strip() == "" else str(float(x)) if x.isdigit() else x.replace(" ", "x"))
-    if colum=='3. Cc:' :
-        df2['3. Cc']=df1[colum]
+    if colum == '3. Cc:':
+        df2['3. Cc'] = df1[colum]
     df1[colum] = df1[colum].fillna('x')
     df2[colum] = df2[colum].fillna('x')
 
@@ -443,7 +445,7 @@ def definir(enrutador,enrutador2,colum):
 
     try:
         # Convierte la columna '10. Fecha rut' al formato esperado
-        df2['10. Fecha rut'] = df2['10. Fecha rut'].apply(lambda x: '/'.join(re.findall(pattern, x)[0]) if isinstance(x, str) and len(re.findall(pattern, x))>0 else x)
+        df2['10. Fecha rut'] = df2['10. Fecha rut'].apply(lambda x: '/'.join(re.findall(pattern, x)[0]) if isinstance(x, str) and len(re.findall(pattern, x)) > 0 else x)
 
         # Convierte la columna '10. Fecha rut' al formato de fecha de Pandas y, en caso de no ser posible, deja los valores como estaban
         df2['10. Fecha rut'] = pd.to_datetime(df2['10. Fecha rut'], format='%d/%m/%Y', errors='coerce').fillna(df2['10. Fecha rut'])
@@ -454,26 +456,28 @@ def definir(enrutador,enrutador2,colum):
         # Maneja la excepción y continua con el código
         print("Se produjo una excepción AttributeError. El programa continuará sin convertir la columna '10. Fecha rut'")
 
-
+    # Verificar la longitud de las listas antes de recorrerlas
+    if len(df1) != len(df2):
+        print("Las listas no tienen la misma longitud")
+        print(len(df1),len(df2))
+    else:
     # Convertir columnas en listas para comparar elemento a elemento
-    lista1 = df1['1. Nombre'].tolist()
-    lista2 = df2['1. Nombre'].tolist()
+        lista1 = df1['1. Nombre'].tolist()
+        lista2 = df2['1. Nombre'].tolist()
 
-    # Recorremos las dos listas al mismo tiempo
-    for i in range(len(lista1)):
-        # Buscamos el índice del primer carácter que coincide
-        indice = lista1[i].find(lista2[i][0])
-        # Si se encuentra el primer carácter, verificamos si hay al menos 4 caracteres consecutivos iguales
-        if indice != -1 and lista1[i][indice:indice+4] == lista2[i][:4]:
-            # Reemplazamos la fila correspondiente en la lista 1 con la fila correspondiente en la lista 2
-            lista2[i] = lista1[i] + lista2[i][indice+4:]
+        # Recorremos las dos listas al mismo tiempo
+        for i in range(len(lista1)):
+            indice = lista2[i].find(lista1[i])
+            if indice != -1:
+                coincidencia = lista2[i][indice:indice+len(lista1[i])]
+                lista2[i] = coincidencia
+
     # Convertir listas de nuevo a dataframes
     df2['1. Nombre'] = lista2
 
-
     # Escribir los archivos actualizados
     df1.to_excel(xlsx_name1, index=False)
-    df2.to_excel(xlsx_name2, index=False)
+    df2.to_excel(xlsx_name2, index=False)        
 
 def unir_contador_columnas(excel_salida):
     # Cargar el archivo de Excel en un dataframe
