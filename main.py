@@ -70,33 +70,34 @@ folder_decProd, decProd_name, decProd_lname, decProd_cc, decProd_firma, decProd_
 
 #recorre los documentos de imagenes recortadas y los lee.  
 if __name__ == '__main__':
-    with multiprocessing.Pool(processes=8) as pool :    
+    with multiprocessing.Pool(processes=15) as pool :    
 
         # pdf_reader = Pdf2Png1(ruta_input, folder_img1, archivos_pdf[0], carpeta, folder)
         for borrar, carpeta in zip(folder,carpetas):
             p00 = pool.apply_async(Pdf2Png1, args=(ruta_input, folder_img1, carpeta, borrar))
-            archivos_img = [f for f in os.listdir(ruta_input + '\\' + folder_img1 + '\\' + borrar) if f.endswith('.jpg')]
-            archivos_img = sorted(archivos_img, key=ordenar_numeros)
         p00.wait()   
         #FIJOS
-        p01= pool.apply_async(PrePross, args=(folder_decProd    ,pross,'borrar1'))
-        p01.wait()
+        # p01= pool.apply_async(PrePross, args=(folder_decProd    ,pross,'borrar1'))
+        # p01.wait()
+        archivos_img = [f for f in os.listdir(ruta_input + '\\' + folder_img1 + '\\' + borrar) if f.endswith('.jpg')]
+        archivos_img = sorted(archivos_img, key=ordenar_numeros)
         p02=pool.apply_async(PrePross, args=(ruta_input,pross,'borrar2'))
         p02.wait()
             
         # Obtener una nueva lista de carpetas comenzando en la posición 3
         sub_borrar = folder[2:]
         sub_carpeta= carpetas[2:]
-        
+        print(archivos_img)
         for archivo in archivos_img: 
+            print(archivos_img)
             for carpeta_out,borrarito in zip (sub_carpeta,sub_borrar):    
                 p05 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, carpeta_out, borrarito))
-                p05.get()
+            p05.get()
             p03 = pool.apply_async(AWS, args=(archivo,))
             p04 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, folder_rut, procesado1))
-            
-            p03.get()
-            p04.get()
+    
+            p03.wait()
+            p04.wait()
             
             
             #RUT
@@ -110,7 +111,13 @@ if __name__ == '__main__':
             p116 = pool.apply_async(write, args=(ruta_output, folder_rut, rut_lname, archivo))
             p117 = pool.apply_async(write, args=(ruta_output, folder_rut, rut_fecha, archivo))
             
+            # p005 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, folder_sisben, 'borrar3'))
+            for carpeta_out,borrarito in zip (sub_carpeta,sub_borrar):    
+                p10 = pool.apply_async(write, args=(ruta_output, carpeta_out, 'full', archivo))
+                
+            # Esperar a que todas las tareas de write se completen antes de continuar
             
+            p10.wait()
             p19.wait()
             p110.wait()
             p111.wait()
@@ -120,12 +127,8 @@ if __name__ == '__main__':
             p115.wait()
             p116.wait()
             p117.wait()
+        
             
-            # p005 = pool.apply_async(doc, args=(ruta_input, folder_img1, archivo, folder_sisben, 'borrar3'))
-            for carpeta_out,borrarito in zip (sub_carpeta,sub_borrar):    
-                p10 = pool.apply_async(write, args=(ruta_output, carpeta_out, 'full', archivo))
-                p10.get()
-            p10.wait()
 
         pausa()
         #Lector
@@ -145,7 +148,7 @@ if __name__ == '__main__':
         p4011=pool.apply(definir,args=(folder_decProd,folder_rut, '3. Cc'))
         #MEZCLA LOS EXC RESTANTES            
         p50=pool.apply(mergemaster,args=(ruta_output, salida))
-        p51=pool.apply(mergemaster,args=(ruta_output, 'errores'))
+        #p51=pool.apply(mergemaster,args=(ruta_output, 'errores'))
         p52 = pool.apply(unir_contador_columnas, args=(('output\\salida' + fecha_actual + '.xlsx',)))
 
 

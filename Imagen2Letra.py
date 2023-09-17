@@ -5,6 +5,11 @@ import numpy as np
 import os
 import unicodedata
 import shutil
+import os
+import os
+import pandas as pd
+import re
+
 #################################################
 
 def PrePross(folder,pros,borrar):
@@ -85,8 +90,6 @@ def PrePross(folder,pros,borrar):
 def doc(ruta,folder,numb,rutadoc,borrar):
     # abrir la imagen
     imagen = Image.open(ruta+'//'+folder+'//'+borrar+'//'+numb)  
-
-
     if not os.path.exists('output/' + rutadoc):
         os.makedirs('output/' + rutadoc)
 
@@ -122,6 +125,7 @@ def doc(ruta,folder,numb,rutadoc,borrar):
 
 
 def docfull(ruta,folder,rutadoc,borrar):
+
     if not os.path.exists('output/' + rutadoc):
         os.makedirs('output/' + rutadoc)
     nombres = 'full'
@@ -145,3 +149,70 @@ def docfull(ruta,folder,rutadoc,borrar):
             ruta_archivo_destino = os.path.join(ruta_destino, archivo)
             # Copiar el archivo de origen al destino
             shutil.copy2(ruta_archivo_origen, ruta_archivo_destino)
+
+
+'input/1. DECLARACION DE PRODUCCION/'
+def OrganizaXL(carpeta_input):
+   # Ruta de la carpeta que contiene los archivos Excel
+    carpeta_input = 'input/1. DECLARACION DE PRODUCCION/'  # Ajusta la ruta según tu estructura de carpetas
+
+    # Lista todos los archivos en la carpeta
+    archivos = os.listdir(carpeta_input)
+
+    # Filtra los archivos para obtener solo los que tienen extensión .xlsx
+    archivos_excel = [archivo for archivo in archivos if archivo.endswith('.xlsx')]
+
+    # Verifica si hay al menos un archivo Excel en la carpeta
+    if len(archivos_excel) > 0:
+        # Toma el primer archivo Excel encontrado
+        primer_archivo_excel = archivos_excel[0]
+
+        # Crea la ruta completa del archivo
+        ruta_archivo = os.path.join(carpeta_input, primer_archivo_excel)
+
+        # Carga el archivo Excel en un DataFrame de pandas
+        df = pd.read_excel(ruta_archivo, dtype=str)
+        
+        # Elimina la primera columna que contiene NaN
+        df = df.drop(columns=['Unnamed: 0'])
+
+        # Asigna nombres de columna apropiados
+        nombres_columnas = df.iloc[0]  # Toma la primera fila como nombres de columna
+        df = df[1:]  # Elimina la primera fila con los nombres de columna
+        df.columns = nombres_columnas  # Asigna los nombres de columna
+
+        # Reinicia los índices del DataFrame
+        df = df.reset_index(drop=True)
+
+        # Formatea las columnas que contienen "fecha" (mayúsculas o minúsculas)
+        for columna in df.columns:
+            if re.search(r'fecha', columna, re.IGNORECASE):
+                df[columna] = df[columna].apply(lambda x: pd.to_datetime(x).strftime('%d/%m/%Y'))
+
+        # Nombre para el nuevo archivo Excel
+        nombre_nuevo_archivo = 'nuevo_nombre.xlsx'  # Cambia este nombre según tus preferencias
+
+        # Ruta completa para el nuevo archivo
+        ruta_nuevo_archivo = os.path.join('input', nombre_nuevo_archivo)
+        
+        # Reordenar las columnas
+        column_order = [
+            'NOMBRE', 'CEDULA', 'CANTIDAD', 'MUNICIPIO', 'DEPARTAMENTO', 'FECHA  (DD/MM/AAAA)', 'FECHA DE EXPEDICIÓN'
+        ]
+
+        df = df[column_order]
+
+        # Numerar las columnas
+        df.columns = [f'{i + 1}. {col}' for i, col in enumerate(df.columns)]
+
+        # Imprimir el DataFrame resultante
+        print(df)
+
+        # Guarda el DataFrame en el nuevo archivo Excel en la carpeta de entrada
+        df.to_excel(ruta_nuevo_archivo, index=False)
+
+        print(f"El DataFrame se ha guardado en {ruta_nuevo_archivo}")
+
+    else:
+        print("No se encontraron archivos Excel en la carpeta especificada.")
+

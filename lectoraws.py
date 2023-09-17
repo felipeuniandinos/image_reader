@@ -2,13 +2,19 @@ import boto3
 import pandas as pd
 import re
 from unidecode import unidecode
-import pandas as pd
 import re
-from unidecode import unidecode
 from openpyxl import load_workbook
 import os
 import warnings
 import datetime
+import os
+import sys
+
+def verificar_condicion(condicion):
+    if condicion:
+        print("Se cumple la condición. El programa se detendrá.")
+        sys.exit()
+
 def AWS(imagen):
     fecha_actual=fecha_actual = datetime.datetime.now().strftime("%d_%m_%Y")
     warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -117,7 +123,6 @@ def AWS(imagen):
     df_decprod_dict = {}
     etiqueta_names = ['NOMBRES', 'APELLIDOS', 'C.C', 'cantidad, mineral','UNIDAD, MEDIDA','MUNICIPIO', 'FECHA, VENTA', 'actividad, economica']
     columnas_decpro = ['1. Nombre', '2. Apellido', '3. Cc', '4. Cantidad', '5. Unidad', '6. Municipio', '7. Fecha', '8. Act']
-
     max_length = 0  # Longitud máxima de los arrays
 
     for etiqueta_name, decpro in zip(etiqueta_names, columnas_decpro):
@@ -161,7 +166,28 @@ def AWS(imagen):
 
     # Escribir el DataFrame en el archivo Excel
     primera_fila.to_excel(writer, sheet_name=sheet_name, startrow=startrow, index=False, header=is_empty)
+    # Cargar los nombres de campos y valores desde el archivo campos.txt
+    ######################################################## APARTADO PARA VERIFICAR PRIMER IMAGEN QUE SE SUBE A AWS
+    campos_verificar = {}
+    if imagen == '1.jpg':
 
+        with open("input\\1. DECLARACION DE PRODUCCION\\campos.txt", "r") as file:
+            for line in file:
+                parts = line.strip().split(":")
+                campo = parts[0].strip()
+                valor = int(parts[1].strip())
+                campos_verificar[campo] = valor
+
+        # Verificar solo los campos especificados en campos.txt según los valores asociados
+        for campo, valor in campos_verificar.items():
+            if valor == 1 and all(value == 'x' for value in df_decprod[campo]):
+                print(f"¡Error en el campo '{campo}'! Todos los valores son 'x'.")
+                condicion = True  # Cambia esto a la condición que necesitas
+                verificar_condicion(condicion)
+
+    ###############################################3
     # Guardar el archivo Excel
     writer.save()
     print('procesing...', imagen)
+
+
